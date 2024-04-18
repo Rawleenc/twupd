@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+[ $UID -eq 0 ] || exec sudo bash "$0" "$@"
+
+GREEN="\033[0;32m"
+CYAN="\033[0;36m"
+ORANGE="\033[0;33m"
+NOCOLOR="\033[0m"
+
+function check_fd_installed {
+    if ! command -v fd -V &>/dev/null; then
+        print_substep "Installing fd..."
+        zypper in -y fd
+    fi
+}
+
+function print_step { echo -e "${GREEN}${1}${NOCOLOR}"; }
+function print_substep { echo -e "${CYAN}  * ${1}${NOCOLOR}"; }
+function prompt { printf "${ORANGE}${1}${NOCOLOR}"; }
+
+print_step "Updating system."
+print_substep "Stopping packagekit..."
+systemctl stop packagekit
+
+print_substep "Execution of zypper dup..."
+zypper dup
+
+print_substep "Execution of flatpak update..."
+flatpak update
+
+print_substep "Cleaning GPU caches..."
+fd -H GPUCache -X rm -rf {}
+
+prompt "Do you want to reboot now ? (Y/n) : "
+read -r answer
+if [[ "$answer" != "${answer#[Yy]}" || "$answer" = "" ]]; then reboot; fi
