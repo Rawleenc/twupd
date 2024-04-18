@@ -23,7 +23,7 @@ function execute {
 print_step "Updating system."
 execute "systemctl stop packagekit"
 if ! command -v fd -V &>/dev/null; then
-    exec "zypper in -y fd"
+    execute "zypper in -y fd"
 fi
 execute "zypper dup"
 execute "flatpak update"
