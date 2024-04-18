@@ -1,36 +1,23 @@
 #!/usr/bin/env sh
 set -e
-
 [ $UID -eq 0 ] || exec sudo "$0" "$HOME"
-
 SUCCESS="\033[92m"
 WARNING="\033[93m"
-
 STEP="\033[94m"
 SUBSTEP="\033[96m"
-
 PROMPT="\033[1m"
 RESET="\033[0m"
-
 function print_step { echo -e "\n${STEP}${1}${RESET}"; }
 function print_success { echo -e "\n${SUCCESS}${1}${RESET}"; }
 function prompt { printf "\n${PROMPT}${1}${RESET}"; }
-function execute {
-    echo -e "${SUBSTEP}+ Executing $1...$RESET"
-    eval $1
-}
-
+function execute { echo -e "${SUBSTEP}+ Executing $1...$RESET"; eval $1; }
 print_step "Updating system."
 execute "systemctl stop packagekit"
-if ! command -v fd -V &>/dev/null; then
-    execute "zypper in -y fd"
-fi
+if ! command -v fd -V &>/dev/null; then execute "zypper in -y fd"; fi
 execute "zypper dup"
 execute "flatpak update"
 execute "fd -H GPUCache $1 -X rm -rf {}"
 print_success "System updated !"
-
 prompt "Do you want to reboot now ? (Y/n) : "
-read -r -n1 reponse
-echo
+read -r -n1 reponse && echo
 if [[ "$reponse" != "${reponse#[Yy]}" || "$reponse" = "" ]]; then reboot; fi
